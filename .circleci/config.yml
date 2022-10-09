@@ -1,6 +1,26 @@
 version: 2.1
 
 commands:
+  run_serial:
+  description: "Build and run tests"
+  parameters:
+    workspace_member:
+      type: string
+    cache_key:
+      type: string
+    flags:
+      type: string
+      default: ""
+  steps:
+    - checkout
+    - setup_environment:
+        cache_key: << parameters.cache_key >>
+    - run:
+        no_output_timeout: 30m
+        command: cd << parameters.workspace_member >> && RUST_MIN_STACK=67108864 cargo test << parameters.flags >>
+    - clear_environment:
+        cache_key: << parameters.cache_key >>
+
   run_parallel:
     description: "Build and run tests (in parallel)"
     parameters:
