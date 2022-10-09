@@ -2,24 +2,20 @@ version: 2.1
 
 commands:
   run_serial:
-  description: "Build and run tests"
-  parameters:
-    workspace_member:
-      type: string
-    cache_key:
-      type: string
-    flags:
-      type: string
-      default: ""
-  steps:
-    - checkout
-    - setup_environment:
-        cache_key: << parameters.cache_key >>
-    - run:
-        no_output_timeout: 30m
-        command: cd << parameters.workspace_member >> && RUST_MIN_STACK=67108864 cargo test << parameters.flags >>
-    - clear_environment:
-        cache_key: << parameters.cache_key >>
+    description: "Build and run tests"
+    parameters:
+      workspace_member:
+        type: string
+      cache_key:
+        type: string
+      flags:
+        type: string
+        default: ""
+    steps:
+      - checkout
+      - run:
+          no_output_timeout: 30m
+          command: RUST_MIN_STACK=67108864 cargo test
 
   run_parallel:
     description: "Build and run tests (in parallel)"
@@ -33,20 +29,15 @@ commands:
         default: ""
     steps:
       - checkout
-      - setup_environment:
-          cache_key: << parameters.cache_key >>
       - run:
           no_output_timeout: 30m
           command: |
-            cd << parameters.workspace_member >>
             cargo test -- --list --format terse | sed 's/: test//' > test_names.txt
             TEST_NAMES=$(circleci tests split test_names.txt)
             for i in $(echo $TEST_NAMES | sed "s/ / /g")
             do
-                RUST_MIN_STACK=67108864 cargo test $i << parameters.flags >>
+                RUST_MIN_STACK=67108864 cargo test $i
             done
-      - clear_environment:
-          cache_key: << parameters.cache_key >>
 
 jobs:
   rust_stable:
